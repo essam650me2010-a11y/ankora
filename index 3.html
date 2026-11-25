@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الذهب وزكاة المال | Gold & Zakat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --gold-dim: #D4AF37;
+            --whatsapp: #25D366;
+            --bg: #08080c;
+            --panel: rgba(20, 20, 28, 0.86);
+            --border: rgba(255, 215, 0, 0.24);
+            --text: #f8fafc;
+            --muted: #a1a1aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.13) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(255, 215, 0, 0.08) 0%, transparent 42%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ================= شاشة التحميل: الأسماء الطويلة بتلف ================= */
+        #siteLoader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, #14141d 0%, #060609 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            transition: opacity 0.65s ease, visibility 0.65s ease;
+        }
+
+        #siteLoader.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-caption {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 18px;
+        }
+
+        .orbit-stage {
+            position: relative;
+            width: 410px;
+            height: 410px;
+            max-width: 94vw;
+            max-height: 94vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 520px) {
+            .orbit-stage {
+                width: 330px;
+                height: 330px;
+            }
+        }
+
+        .orbit-ring {
+            position: absolute;
+            width: 82%;
+            height: 82%;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 215, 0, 0.35);
+            animation: spinRing 9s linear infinite;
+        }
+
+        .orbit-center {
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff3a8, var(--gold), #9e7208);
+            color: #362500;
+            font-weight: 900;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 28px rgba(255, 215, 0, 0.35);
+            z-index: 2;
+        }
+
+        .orbit-rotator {
+            position: absolute;
+            inset: 0;
+            animation: spinOrbit 9s linear infinite;
+        }
+
+        .orbit-name {
+            position: absolute;
+            background: rgba(18, 18, 26, 0.96);
+            border: 1px solid var(--gold);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.86rem;
+            max-width: 175px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+            animation: counterSpin 9s linear infinite;
+        }
+
+        @media (max-width: 520px) {
+            .orbit-name {
+                font-size: 0.78rem;
+                max-width: 135px;
+                padding: 5px 10px;
+            }
+        }
+
+        .orbit-name.n1 { top: 4px; left: 50%; transform: translateX(-50%); }
+        .orbit-name.n2 { right: 4px; top: 50%; transform: translateY(-50%); }
+        .orbit-name.n3 { bottom: 4px; left: 50%; transform: translateX(-50%); }
+        .orbit-name.n4 { left: 4px; top: 50%; transform: translateY(-50%); }
+
+        .loader-bar-wrap {
+            width: 100%;
+            max-width: 350px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .loader-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b8860b, var(--gold), #fff3a8);
+            transition: width 0.1s linear;
+        }
+
+        .loader-sub {
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* ================= الصفحة الرئيسية ================= */
+        .app {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 20px 16px 80px;
+        }
+
+        .top-creators {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(14, 14, 20, 0.95));
+            border: 1px solid rgba(255, 215, 0, 0.38);
+            border-radius: 18px;
+            padding: 16px 22px;
+            margin-bottom: 24px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .top-creators-label {
+            font-size: 0.96rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .creators-list {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .creator-chip {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.42);
+            padding: 7px 20px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.94rem;
+            color: #fff;
+            transition: 0.25s ease;
+        }
+
+        .creator-chip:hover {
+            background: var(--gold);
+            color: #08080c;
+            transform: translateY(-2px);
+        }
+
+        /* خانة صغيرة ثابتة في الزاوية لواتساب المصمم */
+        .corner-wa {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: rgba(15, 23, 18, 0.92);
+            border: 1px solid rgba(37, 211, 102, 0.55);
+            color: #4ade80;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 800;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+
+        .corner-wa:hover {
+            background: var(--whatsapp);
+            color: #07130b;
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .hero h1 {
+            font-size: 2.35rem;
+            font-weight: 900;
+            background: linear-gradient(to left, #ffffff, var(--gold), var(--gold-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            perspective: 1100px;
+        }
+
+        @media (max-width: 820px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-3d {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 26px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+            transition: transform 0.2s ease, border-color 0.25s ease;
+            transform-style: preserve-3d;
+        }
+
+        .card-3d:hover {
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .card-3d h3 {
+            color: var(--gold);
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(8, 8, 12, 0.85);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.14);
+        }
+
+        .btn-gold {
+            width: 100%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            color: #08080c;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: 0.2s ease;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.28);
+        }
+
+        .sync-msg {
+            font-size: 0.85rem;
+            color: #4ade80;
+            margin-bottom: 12px;
+            min-height: 18px;
+        }
+
+        .ingot-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .ingot {
+            width: 150px;
+            height: 58px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fff4b8 0%, var(--gold) 45%, #9e7208 100%);
+            color: #362500;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 24px rgba(255, 215, 0, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+            animation: floatIngot 3.2s ease-in-out infinite;
+        }
+
+        .result-panel {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.14), rgba(0, 0, 0, 0.45));
+            border: 1px solid rgba(255, 215, 0, 0.36);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .result-panel small {
+            color: var(--muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .big-num {
+            font-size: 2.15rem;
+            font-weight: 900;
+            color: var(--gold);
+        }
+
+        .zakat-instant-box {
+            background: rgba(255, 215, 0, 0.08);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .zakat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .zakat-header strong {
+            color: var(--gold);
+            font-size: 1.05rem;
+        }
+
+        .zakat-amount {
+            font-size: 1.65rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .ok {
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.35);
+        }
+
+        .warn {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        .rows {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 0.92rem;
+        }
+
+        .row strong {
+            color: var(--gold);
+        }
+
+        .note-box {
+            margin-top: 14px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            background: rgba(255, 215, 0, 0.06);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        @keyframes spinOrbit {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes spinRing {
+            to { transform: rotate(-360deg); }
+        }
+
+        @keyframes counterSpin {
+            to { transform: rotate(-360deg); }
+        }
+
+        @keyframes floatIngot {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            50% { transform: translateY(-6px) rotateY(10deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="siteLoader">
+        <div class="loader-caption">✨ مشروع حاسبة الذهب وزكاة المال</div>
+
+        <div class="orbit-stage">
+            <div class="orbit-ring"></div>
+            <div class="orbit-center">AU</div>
+            <div class="orbit-rotator">
+                <span class="orbit-name n1">عصام محمد عبدالمنعم محمد</span>
+                <span class="orbit-name n2">امير ابراهيم جوده ابراهيم</span>
+                <span class="orbit-name n3">محمود محمد محمود حنفي</span>
+                <span class="orbit-name n4"> عبدالله احمد عبدالراضي</span>
+            </div>
+        </div>
+
+        <div class="loader-bar-wrap">
+            <div class="loader-bar-fill" id="loaderBar"></div>
+        </div>
+        <div class="loader-sub" id="loaderStatus">جاري التحميل... 0%</div>
+    </div>
+
+    <!-- خانة صغيرة في الزاوية لواتساب المصمم -->
+    <a class="corner-wa" href="https://wa.me/201101124909?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20%D9%8A%D8%A7%20%D9%85%D8%B5%D9%85%D9%85%20%D8%A7%D9%84%D9%85%D9%88%D9%82%D8%B9" target="_blank" rel="noopener noreferrer">
+        💬 واتساب المصمم
+    </a>
+
+    <div class="app">
+        <section class="top-creators">
+            <div class="top-creators-label">✨ المشروع مصمم ومطوّر بواسطة:</div>
+            <div class="creators-list">
+                <span class="creator-chip">عصام محمد عبدالمنعم محمد</span>
+                <span class="creator-chip">امير ابراهيم جوده ابراهيم</span>
+                <span class="creator-chip">محمود محمد محمود حنفي</span>
+                <span class="creator-chip"> عبدالله احمد عبدالراضي</span>
+            </div>
+        </section>
+
+        <header class="hero">
+            <h1>حاسبة الذهب وزكاة المال</h1>
+            <p>احسب سعر الذهب والمصنعية واعرف زكاة المال (2.5%) فوراً في نفس اللحظة</p>
+        </header>
+
+        <div class="grid-2">
+            <div class="card-3d">
+                <h3>بيانات الذهب والمدخرات</h3>
+
+                <button class="btn-gold" onclick="syncGoldPrice()">تحديث سعر الجرام تلقائياً</button>
+                <div class="sync-msg" id="syncMsg">جاهز لتحديث السعر...</div>
+
+                <div class="field">
+                    <label for="karat">العيار</label>
+                    <select id="karat" onchange="calculateAll()">
+                        <option value="24">عيار 24 (نقي 999.9)</option>
+                        <option value="21" selected>عيار 21 (الأكثر تداولاً)</option>
+                        <option value="18">عيار 18</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="price24">سعر جرام عيار 24 اليوم (بالجنيه)</label>
+                    <input type="number" id="price24" value="4300" min="0" oninput="calculateAll()">
+                </div>
+
+                <div class="field">
+                    <label for="weight">وزن الذهب (بالجرام)</label>
+                    <input type="number" id="weight" value="20" min="0" step="0.1" oninput="calculateAll()">
+                </div>
+
+                <div class="field">
+                    <label for="workmanship">المصنعية والدمغة لكل جرام (بالجنيه)</label>
+                    <input type="number" id="workmanship" value="150" min="0" oninput="calculateAll()">
+                </div>
+
+                <div class="field">
+                    <label for="extraCash">أموال نقدية إضافية معك (اختياري - بالجنيه)</label>
+                    <input type="number" id="extraCash" value="0" min="0" oninput="calculateAll()">
+                </div>
+
+                <button class="btn-gold" onclick="calculateAll()">احسب السعر وزكاة المال الآن</button>
+            </div>
+
+            <div class="card-3d">
+                <h3>السعر الإجمالي وزكاة المال (2.5%)</h3>
+
+                <div class="ingot-box">
+                    <div class="ingot" id="ingotLabel">21K • 875</div>
+                </div>
+
+                <div class="result-panel">
+                    <small>الإجمالي النهائي للذهب شامل المصنعية</small>
+                    <div class="big-num" id="goldTotal">0 ج.م</div>
+                </div>
+
+                <div class="zakat-instant-box">
+                    <div class="zakat-header">
+                        <strong>زكاة المال المستحقة (2.5%)</strong>
+                        <span class="badge-status warn" id="nisabBadge">أقل من النصاب</span>
+                    </div>
+                    <div class="zakat-amount" id="zakatDue">0 ج.م</div>
+                    <div class="row" style="margin-top:6px;">
+                        <span>النصاب الشرعي (85 جرام عيار 21):</span>
+                        <strong id="nisabVal">0 ج.م</strong>
+                    </div>
+                </div>
+
+                <div class="rows">
+                    <div class="row"><span>سعر الجرام للعيار المختار:</span><strong id="gramOut">0 ج.م</strong></div>
+                    <div class="row"><span>إجمالي سعر الذهب الصافي:</span><strong id="pureOut">0 ج.م</strong></div>
+                    <div class="row"><span>إجمالي المصنعية:</span><strong id="workOut">0 ج.م</strong></div>
+                </div>
+
+                <div class="note-box">
+                    تجب الزكاة (2.5%) إذا بلغ إجمالي المال/الذهب النصاب ومرّ عليه حول هجري كامل. راجع الجهة الشرعية المختصة في الحالات الخاصة.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n) {
+            return n.toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
+        }
+
+        function startLoader() {
+            const bar = document.getElementById('loaderBar');
+            const status = document.getElementById('loaderStatus');
+            const loader = document.getElementById('siteLoader');
+            let p = 0;
+
+            const iv = setInterval(() => {
+                p += 5;
+                if (p > 100) p = 100;
+                bar.style.width = p + '%';
+                status.innerText = `جاري التحميل... ${p}%`;
+                if (p === 100) {
+                    clearInterval(iv);
+                    setTimeout(() => loader.classList.add('hide'), 300);
+                }
+            }, 75);
+        }
+
+        async function syncGoldPrice() {
+            const msg = document.getElementById('syncMsg');
+            msg.style.color = '#fbbf24';
+            msg.innerText = 'جاري تحديث سعر الجرام...';
+
+            try {
+                const [gRes, fRes] = await Promise.all([
+                    fetch('https://api.gold-api.com/price/XAU'),
+                    fetch('https://open.er-api.com/v6/latest/USD')
+                ]);
+                const gData = await gRes.json();
+                const fData = await fRes.json();
+
+                const ounce = Number(gData.price);
+                const fx = Number(fData.rates.EGP);
+
+                if (ounce > 0 && fx > 0) {
+                    const gram24 = Math.round((ounce / 31.1035) * fx * 1.015);
+                    document.getElementById('price24').value = gram24;
+                    msg.style.color = '#4ade80';
+                    msg.innerText = `تم تحديث سعر جرام عيار 24 إلى ${gram24.toLocaleString('ar-EG')} ج.م`;
+                    calculateAll();
+                    return;
+                }
+                throw new Error('Invalid');
+            } catch (e) {
+                msg.style.color = '#f87171';
+                msg.innerText = 'يمكنك كتابة سعر الجرام يدوياً بالأسفل مباشرة.';
+                calculateAll();
+            }
+        }
+
+        function calculateAll() {
+            const karat = parseFloat(document.getElementById('karat').value);
+            const price24 = parseFloat(document.getElementById('price24').value) || 0;
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const work = parseFloat(document.getElementById('workmanship').value) || 0;
+            const extraCash = parseFloat(document.getElementById('extraCash').value) || 0;
+
+            const price21 = price24 * (21 / 24);
+            const gramPrice = price24 * (karat / 24);
+            const pureTotal = gramPrice * weight;
+            const workTotal = work * weight;
+            const finalGold = pureTotal + workTotal;
+
+            document.getElementById('gramOut').innerText = fmt(gramPrice);
+            document.getElementById('pureOut').innerText = fmt(pureTotal);
+            document.getElementById('workOut').innerText = fmt(workTotal);
+            document.getElementById('goldTotal').innerText = fmt(finalGold);
+            document.getElementById('ingotLabel').innerText = karat === 24 ? '24K • 999.9' : (karat === 21 ? '21K • 875' : '18K • 750');
+
+            const zakatableBase = pureTotal + extraCash;
+            const nisabValue = 85 * price21;
+            const reached = nisabValue > 0 && zakatableBase >= nisabValue;
+            const zakat = reached ? zakatableBase * 0.025 : 0;
+
+            document.getElementById('nisabVal').innerText = fmt(nisabValue);
+            document.getElementById('zakatDue').innerText = fmt(zakat);
+
+            const badge = document.getElementById('nisabBadge');
+            badge.classList.remove('ok', 'warn');
+
+            if (reached) {
+                badge.innerText = 'بلغ النصاب — الزكاة واجبة بعد تمام الحول';
+                badge.classList.add('ok');
+            } else {
+                badge.innerText = 'أقل من النصاب — لا تجب الزكاة';
+                badge.classList.add('warn');
+            }
+        }
+
+        document.querySelectorAll('.card-3d').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const r = card.getBoundingClientRect();
+                const rx = (((e.clientY - r.top) - r.height / 2) / (r.height / 2)) * -4.5;
+                const ry = (((e.clientX - r.left) - r.width / 2) / (r.width / 2)) * 4.5;
+                card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            });
+        });
+
+        startLoader();
+        calculateAll();
+        syncGoldPrice();
+    </script>
+</body>
+</html>
